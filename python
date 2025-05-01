@@ -1,0 +1,31 @@
+class WebCrawler:
+    def __init__(self, urls):
+        self.urls = urls
+        self.results = {}
+
+    async def fetch(self, session, url):
+        try:
+            async with session.get(url) as resp:
+                text = await resp.text()
+                print(f"Fetched {url} with status {resp.status}")
+                return url, text
+        except Exception as e:
+            print(f"Failed to fetch {url}: {e}")
+            return url, ''
+
+    async def crawl(self):
+        async with aiohttp.ClientSession() as session:
+            tasks = [self.fetch(session, url) for url in self.urls]
+            responses = await asyncio.gather(*tasks)
+            self.results = {url: text for url, text in responses}
+
+def run_crawler():
+    urls = [
+        "https://www.python.org",
+        "https://www.wikipedia.org",
+        "https://www.example.com",
+    ]
+    crawler = WebCrawler(urls)
+    asyncio.run(crawler.crawl())
+    return crawler.results
+
